@@ -1,63 +1,45 @@
 {
-    "name": "laravel/laravel",
-    "type": "project",
-    "description": "The Laravel Framework.",
-    "keywords": ["framework", "laravel"],
+    "name": "salesforce-mc/fuel-sdk-php",
+    "description": "Salesforce Marketing Cloud Fuel SDK for PHP",
+    "homepage": "https://developer.salesforce.com/docs/atlas.en-us.mc-sdks.meta/mc-sdks/index-sdk.htm",
     "license": "MIT",
+    "type": "library",
+    "minimum-stability": "stable",
     "require": {
-        "php": "^7.3|^8.0",
-        "fruitcake/laravel-cors": "^2.0",
-        "guzzlehttp/guzzle": "^7.0.1",
-        "laravel/framework": "^8.75",
-        "laravel/sanctum": "^2.11",
-        "laravel/tinker": "^2.5",
-        "salesforce-mc/fuel-sdk-php": "^1.4"
+        "ext-curl": "*",
+        "ext-openssl": "*",
+        "ext-soap": "*",
+        "php": ">=5.6.24",
+        "robrichards/wse-php":"2.0.3",
+        "firebase/php-jwt":">=5.0.0"
     },
     "require-dev": {
-        "facade/ignition": "^2.5",
-        "fakerphp/faker": "^1.9.1",
-        "laravel/sail": "^1.0.1",
-        "mockery/mockery": "^1.4.4",
-        "nunomaduro/collision": "^5.10",
-        "phpunit/phpunit": "^9.5.10"
+        "phpunit/phpunit":">=5.7.20",
+        "phpdocumentor/phpdocumentor": "2.8.0",
+        "dompdf/dompdf": "0.6"
     },
+    "keywords": [
+        "exacttarget",
+        "salesforce",
+        "marketing cloud",
+        "php sdk",
+        "sdk",
+        "fuel sdk",
+        "fuel-sdk"
+    ],
     "autoload": {
         "psr-4": {
-            "App\\": "app/",
-            "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
+            "FuelSdk\\" : "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/"
-        }
-    },
-    "scripts": {
-        "post-autoload-dump": [
-            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi"
-        ],
-        "post-update-cmd": [
-            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
-        ],
-        "post-root-package-install": [
-            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
-        ],
-        "post-create-project-cmd": [
-            "@php artisan key:generate --ansi"
-        ]
-    },
-    "extra": {
-        "laravel": {
-            "dont-discover": []
+            "FuelSdk\\Test\\": "tests/"
         }
     },
     "config": {
-        "optimize-autoloader": true,
-        "preferred-install": "dist",
-        "sort-packages": true
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+        "allow-plugins": {
+            "phpdocumentor/unified-asset-installer": true
+        }
+    }
 }
