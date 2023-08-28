@@ -1,0 +1,13 @@
+<?php
+return array(
+    'appsignature' => 'none',
+	'clientid' => '',
+	'clientsecret' => '',
+	'defaultwsdl' => 'https://webservice.exacttarget.com/etframework.wsdl',
+    'xmlloc' => 'ExactTargetWSDL.xml',
+    'baseUrl' => '',
+    'baseAuthUrl' => '',
+    'baseSoapUrl' => '',
+    'useOAuth2Authentication' => true,
+    'accountId' => '',
+);
