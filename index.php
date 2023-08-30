@@ -15,6 +15,15 @@ $dataextensionrow->Name = 'Semillas_Sindy';
 // deleteDataExtensionRows($myclient, $dataextensionrow);
 retrieveDataExtensionRows($myclient, $dataextensionrow);
 
+$nameMail="Send_Mail_Iglu_testetest";
+$html = "<p>hoila</p> <br> p>hoila</p>";
+$html_final = preg_replace("/[\r\n|\n|\r]+/", "", $html);
+$html_final = str_replace("                        ", "", $html_final);
+$html_final = str_replace("    ", "", $html_final);
+$html_final = preg_replace("/[\r\n|\n|\r]+/", "", $html_final);
+$subject="Invitación El Iglu";
+
+
 function retrieveDataExtensionRows($myclient, $dataextensionrow) {
 
     $dataextensionrow->authStub = $myclient;
