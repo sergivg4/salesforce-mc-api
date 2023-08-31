@@ -1,90 +1,91 @@
 <?php
-
 require('vendor/autoload.php');
 
 use FuelSdk\ET_Client;
 use FuelSdk\ET_PostRest;
 use FuelSdk\ET_DataExtension;
 
-$myclient = new ET_Client();
+$myclient = new ET_Client(true, true);
 
-//Create Email
-$nameMail="Send_Mail_Iglu_TestTest";
-$html = "<p>prueba</p> <br> <p>test</p>";
-$html_final = preg_replace("/[\r\n|\n|\r]+/", "", $html);
-$html_final = str_replace("                        ", "", $html_final);
-$html_final = str_replace("    ", "", $html_final);
-$html_final = preg_replace("/[\r\n|\n|\r]+/", "", $html_final);
-$subject="Prueba api email marketing cloud";
-$email = createEmail($myclient,$nameMail,$html_final,$subject);
+//Crear Fecha
+$now = new DateTime();
+$now->add(new DateInterval('PT2H10M'));
+$fecha = $now->format('Ymd');
+$hora = $now->format('Hi00');
+
+//Crear html mail
+$html_final = createHtml();
+
+//Crear Mail en MC
+$nameMail = "Test_Email_Sergi_" . $fecha . "_" . $hora;
+$subject = "Test";
+$email= crateEmail($myclient,$nameMail,$html_final,$subject);
 $emailKey = $email->results->customerKey;
-// print_r($email->results);
-$emailLegacyID = $email->results->legacyData->legacyId;
+$emailLegacyID= $email->results->legacyData->legacyId;
 
 //Create Data Extension
-$nameDE="Test_Emails_Sergi_DE";
+$nameDE="Test_Email_Sergi_" . $hora . "_" . $fecha;
 $data_ext = createDataExtension($myclient,$nameDE);
 $deObjectID=$data_ext[0]->NewObjectID;
 
 //Add Users
 $users_sample = array ( 
-            'items' => array (
-                array (
-                    'UUID' => '0033X00003evNrHQAU',
-                    'Email' => 'sergivg10@gmail.com',
-                    'Nombre' => 'Dani',
-                ),
-                array (
-                    'UUID' => '0033X00003evM5KQAU',
-                    'Email' => 'sergivg10@gmail.com',
-                    'Nombre' => 'Sergi',
-                ),
-                array (
-                    'UUID' => '0033X00003VdxgCQAR',
-                    'Email' => 'sergivg10@gmail.com',
-                    'Nombre' => 'Edgar',
-                ),
-                array (
-                    'UUID' => '0033X00003Ve9oMQAR',
-                    'Email' => 'sergivg10@gmail.com',
-                    'Nombre' => 'Mar',
-                ),
-            ),
+    'items' => array (
+        array (
+            'UUID' => '0033X00003evNrHQAU',
+            'email' => 'sergi.valenzuela.externo@penguinrandomhouse.com',
+            'Nombre' => 'Sergi',
+        ),
+        array (
+            'UUID' => '0033X00003evM5KQAU',
+            'Email' => 'sergivg10@gmail.com',
+            'Nombre' => 'Sergi',
+        ),
+        array (
+            'UUID' => '0033X00003VdxgCQAR',
+            'Email' => 'sergivalenzuela@capitole-consulting.com',
+            'Nombre' => 'Sergi',
+        ),
+    ),
 );
 $result = addUsersDE($myclient, $nameDE, $users_sample);
 
-//Create Event
-$nameEvent="Test_Emails_Sergi_Event2";
-$event = createEvent($myclient, $nameDE, $nameEvent, $deObjectID);
-echo "aqui  ";
-print_r($event->results);
-echo "  aqui";
-$eventID = $event->results->id;
+//Crear Evento
+$nameEvent="Test_Email_Sergi_".$fecha."_".$hora;
+$event= createEvent($myclient,$nameDE,$nameEvent,$deObjectID);       
+$eventID=$event->results->id;
 
-//Create Journey
-$nameJourney = "Journey_Test_Sergi";
-$pais = "ES";
-$senderProfileID = "14456c46-eada-ea11-b824-f40343c97a60";
-$deliveryProfileID = "14456c46-eada-ea11-b824-f40343c97a60";
-$journey = createJourney($myclient, $nameJourney, $nameEvent, $eventID, $nameMail, $emailKey, $emailLegacyID, $senderProfileID, $deliveryProfileID);
-$journeyID = $journey->results->id;
+//Crear Journey
+$nameJourney = "Test_Email_Sergi_".$fecha."_".$hora;;
+$senderProfileID="a11170b2-4a78-eb11-b834-f40343c97c58";
+$deliveryProfileID="a11170b2-4a78-eb11-b834-f40343c97c58";
+$journey = createJourney($myclient,$nameJourney,$nameEvent,$eventID,$nameMail,$emailKey,$emailLegacyID,$senderProfileID, $deliveryProfileID,$subject);
 
-//Activate Journey
-$resultActivate = activateJourney($myclient, $journeyID);
+//Activar Journey
+$journeyID=$journey->results->id;
+$resultActivate= activateJourney($myclient,$journeyID);
+print_r($resultActivate);
 
-if(!isset($resultActivate)) {
-    echo 'Error envio camapaña';
+
+function createHtml() {
+
+    $html = "<p>Hola</p>";
+
+    $html_final = preg_replace("/[\r\n|\n|\r]+/", "", $html);
+    $html_final = str_replace("                        ", "", $html_final);
+    $html_final = str_replace("    ", "", $html_final);
+    $html_final = preg_replace("/[\r\n|\n|\r]+/", "", $html_final);
+
+    return $html_final;
 }
 
-
-function createEmail($myclient,$name,$html,$subject) {
+function crateEmail($myclient,$name,$html,$subject) {
         
     $deURL = "https://mclt7dkpvhsd7h170qfjl6087h11.rest.marketingcloudapis.com/asset/v1/content/assets";
     
-    // Rows to update
     $deRows = json_decode('{
         "name": "'.$name.'",
-        "category": { "id": 7156 },
+        "category": { "id": 7156 }, 
         "channels": {
         "email": true,
         "web": false
@@ -105,19 +106,18 @@ function createEmail($myclient,$name,$html,$subject) {
     
     $restDE = new ET_PostRest($myclient ,$deURL, $deRows,$myclient->getAuthToken());
 
-    print_r($restDE);
-    return $restDE;    
+    return $restDE;
+      
 }
 
 function createDataExtension($myclient,$nameDE) {
     
-    print_r("Create a Data Extension  \n");
     $postDE = new ET_DataExtension();
     $postDE->authStub = $myclient;
     $postDE->props = array(
                     "Name" => $nameDE,
                     "CustomerKey" => $nameDE,
-                    "CategoryID"=> 18088,
+                    "CategoryID"=> 18088, // Id de Test
                     "IsSendable" => "true",
                     "SendableDataExtensionField" => array(
                         'Name' => 'Email',
@@ -134,7 +134,7 @@ function createDataExtension($myclient,$nameDE) {
     $postDE->columns[] = array("Name" => "Nombre", "FieldType" => "Text");
     $postResult = $postDE->post();
 
-    print_r($postResult->results);
+    // print_r($postResult->results);
 
     return $postResult->results;
 
@@ -152,64 +152,64 @@ function addUsersDE($myclient,$nameDE, $users) {
 
 function createEvent($myclient,$nameDE,$nameEvent,$deObjectID) {
 
-       $now = new DateTime();
-       $now->add(new DateInterval('PT2H10M'));
-       $fecha = $now->format('Y-m-d');
-       $hora = $now->format('H:i:00');
+    $now = new DateTime();
+    $now->add(new DateInterval('PT2H10M'));
+    $fecha = $now->format('Y-m-d');
+    $hora = $now->format('H:i:00');
 
-        $deURL ="https://mclt7dkpvhsd7h170qfjl6087h11.rest.marketingcloudapis.com/interaction/v1/eventDefinitions";
-        $jsonEvent= json_decode('{
-          "type": "EmailAudience",
-          "name": "'.$nameEvent.'",
-          "eventDefinitionKey": "'.$nameEvent.'",
-          "mode": "Production",
-          "dataExtensionName": "'.$nameDE.'",
-          "dataExtensionId": "'.$deObjectID.'",
-          "sourceApplicationExtensionId": "97e942ee-6914-4d3d-9e52-37ecb71f79ed",
-          "filterDefinitionId": "00000000-0000-0000-0000-000000000000",
-          "filterDefinitionTemplate": "",
-          "iconUrl": "/images/icon-data-extension.svg",
-          "arguments": {
-              "serializedObjectType": 3,
-              "eventDefinitionKey": "'.$nameEvent.'",
-              "dataExtensionId": "'.$deObjectID.'",
-              "criteria": "",
-              "useHighWatermark": false
-          },
-          "configurationArguments": {
-              "unconfigured": false
-          },
-          "metaData": {
-              "criteriaDescription": "",
-              "scheduleFlowMode": "runOnce",
-              "runOnceScheduleMode": "onSchedule"
-          },
-           "schedule": {
-              "startDateTime": "'.$fecha.'T'.$hora.'",
-              "endDateTime": "'.$fecha.'T'.$hora.'",
-              "timeZone": "Romance Standard Time",
-              "occurrences": 1,
-              "endType": "Occurrences",
-              "frequency": "Daily",
-              "recurrencePattern": "Interval",
-              "interval": 1
-          },
-          "interactionCount": 1,
-          "isVisibleInPicker": false,
-          "isPlatformObject": false,
-          "category": "Audience",
-          "publishedInteractionCount": 0,
-          "disableDEDataLogging": false
-      }');
-      
-      $restDE = new ET_PostRest($myclient ,$deURL, $jsonEvent,$myclient->getAuthToken());
+    $deURL ="https://mclt7dkpvhsd7h170qfjl6087h11.rest.marketingcloudapis.com/interaction/v1/eventDefinitions";
 
-      return $restDE;
-      print_r($restDE);
-      
+    $jsonEvent= json_decode('{
+        "type": "EmailAudience",
+        "name": "'.$nameEvent.'",
+        "eventDefinitionKey": "'.$nameEvent.'",
+        "mode": "Production",
+        "dataExtensionName": "'.$nameDE.'",
+        "dataExtensionId": "'.$deObjectID.'",
+        "sourceApplicationExtensionId": "97e942ee-6914-4d3d-9e52-37ecb71f79ed",
+        "filterDefinitionId": "00000000-0000-0000-0000-000000000000",
+        "filterDefinitionTemplate": "",
+        "iconUrl": "/images/icon-data-extension.svg",
+        "arguments": {
+            "serializedObjectType": 3,
+            "eventDefinitionKey": "'.$nameEvent.'",
+            "dataExtensionId": "'.$deObjectID.'",
+            "criteria": "",
+            "useHighWatermark": false
+        },
+        "configurationArguments": {
+            "unconfigured": false
+        },
+        "metaData": {
+            "criteriaDescription": "",
+            "scheduleFlowMode": "runOnce",
+            "runOnceScheduleMode": "onSchedule"
+        },
+        "schedule": {
+            "startDateTime": "'.$fecha.'T'.$hora.'",
+            "endDateTime": "'.$fecha.'T'.$hora.'",
+            "timeZone": "Romance Standard Time",
+            "occurrences": 1,
+            "endType": "Occurrences",
+            "frequency": "Daily",
+            "recurrencePattern": "Interval",
+            "interval": 1
+        },
+        "interactionCount": 1,
+        "isVisibleInPicker": false,
+        "isPlatformObject": false,
+        "category": "Audience",
+        "publishedInteractionCount": 0,
+        "disableDEDataLogging": false
+    }');
+    
+    $restDE = new ET_PostRest($myclient ,$deURL, $jsonEvent,$myclient->getAuthToken());
+
+    return $restDE;
+    
 }
 
-function createJourney($myclient,$nameJourney,$nameEvent,$eventID,$nameMail,$emailKey,$emailLegacyID,$senderProfileID, $deliveryProfileID){
+function createJourney($myclient,$nameJourney,$nameEvent,$eventID,$nameMail,$emailKey,$emailLegacyID,$senderProfileID, $deliveryProfileID, $subject){
 
     $deURL="https://mclt7dkpvhsd7h170qfjl6087h11.rest.marketingcloudapis.com/interaction/v1/interactions";
     $jsonJourney=json_decode('
@@ -243,9 +243,9 @@ function createJourney($myclient,$nameJourney,$nameEvent,$eventID,$nameMail,$ema
                       "ccEmail": "",
                       "created": {},
                       "domainExclusions": [],
-                      "dynamicEmailSubject": "Nueva encuesta.",
+                      "dynamicEmailSubject": "'.$subject.'",
                       "emailId": '.$emailLegacyID.',
-                      "emailSubject": "Nueva encuesta.",
+                      "emailSubject": "'.$subject.'",
                       "exclusionFilter": "",
                       "isSalesforceTracking": true,
                       "isMultipart": true,
@@ -421,23 +421,19 @@ function createJourney($myclient,$nameJourney,$nameEvent,$eventID,$nameMail,$ema
           "isScheduleSet": true
       },
       "executionMode": "Production",
-      "categoryId": 28008,
+      "categoryId": 28252,
       "status": "Draft",
       "scheduledStatus": "Draft"
   }');
     
-    $restDE = new ET_PostRest($myclient ,$deURL, $jsonJourney,$myclient->getAuthToken());
-
-    return $restDE;
+  $restDE = new ET_PostRest($myclient ,$deURL, $jsonJourney,$myclient->getAuthToken());
+  return $restDE;
   
 }
 
 function activateJourney($myclient,$journeyID) {
 
-    $deURL="https://mclt7dkpvhsd7h170qfjl6087h11.rest.marketingcloudapis.com/interaction/v1/interactions/publishAsync/".$journeyID."?versionNumber=1";
-
-    $restDE = new ET_PostRest($myclient ,$deURL,array(),$myclient->getAuthToken());
-
-    return $restDE;
-
+        $deURL="https://mclt7dkpvhsd7h170qfjl6087h11.rest.marketingcloudapis.com/interaction/v1/interactions/publishAsync/".$journeyID."?versionNumber=1";
+        $restDE = new ET_PostRest($myclient ,$deURL,array(),$myclient->getAuthToken());
+        return $restDE;
 }
